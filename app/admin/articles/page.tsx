@@ -3,23 +3,28 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { AdminService } from '@/lib/admin'
-import { Article } from '@/lib/admin'
+import { Article, Category } from '@/lib/admin'
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
-    loadArticles()
+    loadData()
   }, [])
 
-  async function loadArticles() {
+  async function loadData() {
     try {
-      const articlesData = await AdminService.getAllArticles()
+      const [articlesData, categoriesData] = await Promise.all([
+        AdminService.getAllArticles(),
+        AdminService.getAllCategories()
+      ])
       setArticles(articlesData)
+      setCategories(categoriesData)
     } catch (error) {
-      console.error('加载文章失败:', error)
+      console.error('加载数据失败:', error)
     } finally {
       setLoading(false)
     }
@@ -43,10 +48,16 @@ export default function ArticlesPage() {
     }
   }
 
+  // 根据分类ID获取分类名称
+  const getCategoryName = (categoryId: string) => {
+    const category = categories.find(cat => cat.id === categoryId)
+    return category?.name || categoryId
+  }
+
   const filteredArticles = articles.filter(article =>
     article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     article.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    article.category.toLowerCase().includes(searchTerm.toLowerCase())
+    getCategoryName(article.category).toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   if (loading) {
@@ -147,7 +158,7 @@ export default function ArticlesPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                        {article.category}
+                        {getCategoryName(article.category)}
                       </span>
                     </td>
                     <td className="px-6 py-4">

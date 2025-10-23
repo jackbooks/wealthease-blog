@@ -24,7 +24,7 @@ export default function ArticleEditor({
     excerpt: article?.excerpt || '',
     date: article?.date || new Date().toISOString().split('T')[0],
     readTime: article?.readTime || '5分钟',
-    category: article?.category || categories[0]?.name || '',
+    category: article?.category || categories[0]?.id || '',
     tags: article?.tags?.join(', ') || '',
     image: article?.image || '',
     author: article?.author || 'WealthEase',
@@ -114,7 +114,7 @@ export default function ArticleEditor({
             required
           >
             {categories.map((category) => (
-              <option key={category.id} value={category.name}>
+              <option key={category.id} value={category.id}>
                 {category.name}
               </option>
             ))}
