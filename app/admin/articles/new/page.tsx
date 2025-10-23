@@ -24,7 +24,7 @@ export default function NewArticlePage() {
     }
   }
 
-  async function handleSubmit(formData: any) {
+  async function handleSubmit(formData: any): Promise<{ success: boolean; errors?: string[] }> {
     setLoading(true)
     try {
       const result = await AdminService.createArticle(formData)

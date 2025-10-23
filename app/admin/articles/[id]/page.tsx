@@ -42,7 +42,7 @@ export default function EditArticlePage() {
     }
   }
 
-  async function handleSubmit(formData: any) {
+  async function handleSubmit(formData: any): Promise<{ success: boolean; errors?: string[] }> {
     setLoading(true)
     try {
       const result = await AdminService.updateArticle(articleId, formData)

@@ -9,7 +9,7 @@ export default function NewCategoryPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(formData: any) {
+  async function handleSubmit(formData: any): Promise<{ success: boolean; errors?: string[] }> {
     setLoading(true)
     try {
       const result = await AdminService.createCategory(formData)
