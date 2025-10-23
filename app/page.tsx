@@ -1,57 +1,72 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Calendar, Tag, User } from 'lucide-react'
 
-// 模拟文章数据
-const posts = [
-  {
-    id: 1,
-    title: '如何开始个人理财规划',
-    excerpt: '学习如何制定个人理财计划，建立健康的财务习惯，实现财富自由的第一步。',
-    date: '2024-01-15',
-    category: '理财基础',
-    tags: ['理财', '规划', '基础'],
-    readTime: '5分钟'
-  },
-  {
-    id: 2,
-    title: '投资组合多样化策略',
-    excerpt: '了解如何通过资产配置和风险分散来构建稳健的投资组合。',
-    date: '2024-01-12',
-    category: '投资策略',
-    tags: ['投资', '组合', '风险'],
-    readTime: '8分钟'
-  },
-  {
-    id: 3,
-    title: '被动收入的重要性',
-    excerpt: '探讨被动收入在财富积累中的作用以及如何建立多元化的收入来源。',
-    date: '2024-01-10',
-    category: '收入管理',
-    tags: ['被动收入', '财富积累', '多元化'],
-    readTime: '6分钟'
-  },
-  {
-    id: 4,
-    title: '理解复利的力量',
-    excerpt: '复利是财富增长的第八大奇迹，学习如何利用复利效应实现长期财富增值。',
-    date: '2024-01-08',
-    category: '财富增长',
-    tags: ['复利', '长期投资', '财富增长'],
-    readTime: '7分钟'
-  }
-]
+interface Article {
+  id: string
+  title: string
+  excerpt: string
+  date: string
+  category: string
+  tags: string[]
+  readTime: string
+}
 
-const categories = [
-  { name: '理财基础', count: 12 },
-  { name: '投资策略', count: 8 },
-  { name: '收入管理', count: 5 },
-  { name: '财富增长', count: 7 },
-  { name: '风险管理', count: 4 }
-]
+interface Category {
+  name: string
+  count: number
+}
 
 export default function Home() {
+  const [posts, setPosts] = useState<Article[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadArticles()
+  }, [])
+
+  async function loadArticles() {
+    try {
+      const response = await fetch('/api/articles')
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setPosts(result.data)
+
+        // 生成分类统计
+        const categoryCounts: Record<string, number> = {}
+        result.data.forEach((article: Article) => {
+          categoryCounts[article.category] = (categoryCounts[article.category] || 0) + 1
+        })
+
+        const categoryList = Object.entries(categoryCounts).map(([name, count]) => ({
+          name,
+          count: count as number
+        }))
+
+        setCategories(categoryList)
+      }
+    } catch (error) {
+      console.error('加载文章失败:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">加载中...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 头部导航 */}
@@ -135,59 +150,67 @@ export default function Home() {
           {/* 文章列表 */}
           <div className="lg:col-span-2">
             <h2 className="text-2xl font-bold text-gray-900 mb-8">最新文章</h2>
-            <div className="space-y-6">
-              {posts.map((post, index) => (
-                <motion.article
-                  key={post.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center text-sm text-gray-500 mb-3">
-                    <div className="flex items-center mr-4">
-                      <Calendar size={16} className="mr-1" />
-                      {post.date}
+            {posts.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+                <div className="text-6xl mb-4">📝</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">还没有文章</h3>
+                <p className="text-gray-600 mb-6">稍后回来查看最新的财富管理知识</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {posts.map((post, index) => (
+                  <motion.article
+                    key={post.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center text-sm text-gray-500 mb-3">
+                      <div className="flex items-center mr-4">
+                        <Calendar size={16} className="mr-1" />
+                        {post.date}
+                      </div>
+                      <div className="flex items-center">
+                        <User size={16} className="mr-1" />
+                        {post.readTime}
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <User size={16} className="mr-1" />
-                      {post.readTime}
-                    </div>
-                  </div>
 
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3 hover:text-primary-500 transition-colors">
-                    <a href="#">{post.title}</a>
-                  </h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3 hover:text-primary-500 transition-colors">
+                      <a href={`/article/${post.id}`}>{post.title}</a>
+                    </h3>
 
-                  <p className="text-gray-600 mb-4 leading-relaxed">
-                    {post.excerpt}
-                  </p>
+                    <p className="text-gray-600 mb-4 leading-relaxed">
+                      {post.excerpt}
+                    </p>
 
-                  <div className="flex flex-wrap items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="bg-primary-50 text-primary-700 px-3 py-1 rounded-full text-sm font-medium">
-                        {post.category}
-                      </span>
-                      {post.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="flex items-center text-gray-500 text-sm"
-                        >
-                          <Tag size={14} className="mr-1" />
-                          {tag}
+                    <div className="flex flex-wrap items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="bg-primary-50 text-primary-700 px-3 py-1 rounded-full text-sm font-medium">
+                          {post.category}
                         </span>
-                      ))}
+                        {post.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="flex items-center text-gray-500 text-sm"
+                          >
+                            <Tag size={14} className="mr-1" />
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      <a
+                        href={`/article/${post.id}`}
+                        className="text-primary-500 hover:text-primary-600 font-medium text-sm"
+                      >
+                        阅读全文 →
+                      </a>
                     </div>
-                    <a
-                      href="#"
-                      className="text-primary-500 hover:text-primary-600 font-medium text-sm"
-                    >
-                      阅读全文 →
-                    </a>
-                  </div>
-                </motion.article>
-              ))}
-            </div>
+                  </motion.article>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 侧边栏 */}

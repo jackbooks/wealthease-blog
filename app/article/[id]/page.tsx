@@ -1,90 +1,87 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Calendar, User, Tag, Share2, Bookmark, Eye } from 'lucide-react'
 
-// 模拟文章数据
-const article = {
-  id: 1,
-  title: '如何开始个人理财规划',
-  content: `
-    <p>个人理财规划是实现财务自由的第一步，也是最重要的一步。无论你的收入水平如何，制定一个合理的理财计划都能帮助你更好地管理财务，实现人生目标。</p>
-
-    <h2>为什么要制定理财规划？</h2>
-    <p>理财规划不仅仅是关于赚钱和存钱，它涉及到你生活的方方面面：</p>
-    <ul>
-      <li>明确财务目标</li>
-      <li>建立应急基金</li>
-      <li>规划退休生活</li>
-      <li>管理债务</li>
-      <li>实现资产增值</li>
-    </ul>
-
-    <h2>理财规划的基本步骤</h2>
-    <h3>1. 评估当前财务状况</h3>
-    <p>首先需要了解自己的收入、支出、资产和负债情况。制作一个详细的资产负债表，明确自己的净资产。</p>
-
-    <h3>2. 设定明确的财务目标</h3>
-    <p>将目标分为短期（1年内）、中期（1-5年）和长期（5年以上）目标。确保每个目标都是具体的、可衡量的、可实现的、相关的和有时间限制的。</p>
-
-    <h3>3. 制定预算计划</h3>
-    <p>建立月度预算，跟踪收入和支出。推荐使用50/30/20法则：50%用于必要支出，30%用于想要支出，20%用于储蓄和投资。</p>
-
-    <h3>4. 建立应急基金</h3>
-    <p>准备3-6个月的生活费用作为应急基金，存放在容易取用的账户中。</p>
-
-    <h3>5. 开始投资</h3>
-    <p>根据风险承受能力和投资目标，选择合适的投资工具。对于初学者，建议从指数基金开始。</p>
-
-    <h2>常见的理财误区</h2>
-    <p>在制定理财规划时，需要避免以下常见误区：</p>
-    <ul>
-      <li>过度关注短期收益</li>
-      <li>忽视通货膨胀的影响</li>
-      <li>没有定期检视和调整计划</li>
-      <li>跟风投资，缺乏独立思考</li>
-    </ul>
-
-    <h2>总结</h2>
-    <p>个人理财规划是一个持续的过程，需要定期检视和调整。记住，理财的最终目的是为了实现更好的生活质量，而不仅仅是积累财富。</p>
-  `,
-  excerpt: '学习如何制定个人理财计划，建立健康的财务习惯，实现财富自由的第一步。',
-  date: '2024-01-15',
-  category: '理财基础',
-  tags: ['理财', '规划', '基础', '财务自由'],
-  readTime: '5分钟',
-  views: 1250,
-  author: {
-    name: 'WealthEase',
-    bio: '财富管理爱好者，专注于分享实用的理财知识和投资策略。'
-  }
+interface Article {
+  id: string
+  title: string
+  content: string
+  excerpt: string
+  date: string
+  category: string
+  tags: string[]
+  readTime: string
+  views?: number
+  author?: string
+  relatedArticles?: Array<{
+    id: string
+    title: string
+    excerpt: string
+    date: string
+    readTime: string
+  }>
 }
 
-const relatedArticles = [
-  {
-    id: 2,
-    title: '投资组合多样化策略',
-    excerpt: '了解如何通过资产配置和风险分散来构建稳健的投资组合。',
-    date: '2024-01-12',
-    readTime: '8分钟'
-  },
-  {
-    id: 3,
-    title: '被动收入的重要性',
-    excerpt: '探讨被动收入在财富积累中的作用以及如何建立多元化的收入来源。',
-    date: '2024-01-10',
-    readTime: '6分钟'
-  },
-  {
-    id: 4,
-    title: '理解复利的力量',
-    excerpt: '复利是财富增长的第八大奇迹，学习如何利用复利效应实现长期财富增值。',
-    date: '2024-01-08',
-    readTime: '7分钟'
-  }
-]
-
 export default function ArticlePage({ params }: { params: { id: string } }) {
+  const [article, setArticle] = useState<Article | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    loadArticle()
+  }, [params.id])
+
+  async function loadArticle() {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const response = await fetch(`/api/articles/${params.id}`)
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || '获取文章失败')
+      }
+
+      setArticle(result.data)
+    } catch (error) {
+      console.error('加载文章失败:', error)
+      setError(error instanceof Error ? error.message : '加载文章失败')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">加载中...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !article) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">📝</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">文章不存在</h3>
+          <p className="text-gray-600 mb-6">{error || '无法找到该文章'}</p>
+          <a
+            href="/"
+            className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-colors font-medium inline-flex items-center space-x-2"
+          >
+            <span>返回首页</span>
+          </a>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 文章头部 */}
@@ -123,10 +120,12 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
               <User size={16} className="mr-1" />
               {article.readTime}
             </div>
-            <div className="flex items-center">
-              <Eye size={16} className="mr-1" />
-              {article.views} 阅读
-            </div>
+            {article.views && (
+              <div className="flex items-center">
+                <Eye size={16} className="mr-1" />
+                {article.views} 阅读
+              </div>
+            )}
           </motion.div>
         </div>
       </div>
@@ -193,44 +192,48 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
                   <User size={24} className="text-primary-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{article.author.name}</h3>
-                  <p className="text-gray-600 text-sm mt-1">{article.author.bio}</p>
+                  <h3 className="text-lg font-semibold text-gray-900">{article.author || 'WealthEase'}</h3>
+                  <p className="text-gray-600 text-sm mt-1">
+                    财富管理爱好者，专注于分享实用的理财知识和投资策略。
+                  </p>
                 </div>
               </div>
             </motion.div>
 
             {/* 相关文章 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="mt-12"
-            >
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">相关文章</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {relatedArticles.map((relatedArticle, index) => (
-                  <motion.div
-                    key={relatedArticle.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7 + index * 0.1 }}
-                    className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow"
-                  >
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3 hover:text-primary-500 transition-colors">
-                      <a href={`/article/${relatedArticle.id}`}>{relatedArticle.title}</a>
-                    </h4>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {relatedArticle.excerpt}
-                    </p>
-                    <div className="flex items-center text-xs text-gray-500">
-                      <span>{relatedArticle.date}</span>
-                      <span className="mx-2">•</span>
-                      <span>{relatedArticle.readTime}</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+            {article.relatedArticles && article.relatedArticles.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="mt-12"
+              >
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">相关文章</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {article.relatedArticles.map((relatedArticle, index) => (
+                    <motion.div
+                      key={relatedArticle.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.7 + index * 0.1 }}
+                      className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow"
+                    >
+                      <h4 className="text-lg font-semibold text-gray-900 mb-3 hover:text-primary-500 transition-colors">
+                        <a href={`/article/${relatedArticle.id}`}>{relatedArticle.title}</a>
+                      </h4>
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                        {relatedArticle.excerpt}
+                      </p>
+                      <div className="flex items-center text-xs text-gray-500">
+                        <span>{relatedArticle.date}</span>
+                        <span className="mx-2">•</span>
+                        <span>{relatedArticle.readTime}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
           </div>
 
           {/* 侧边栏 */}
