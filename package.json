@@ -20,7 +20,7 @@
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.0",
     "framer-motion": "^10.16.0",
-    "lucide-react": "^0.288.0",
+    "lucide-react": "^0.288.0"
   },
   "devDependencies": {
     "eslint": "^8.0.0",
