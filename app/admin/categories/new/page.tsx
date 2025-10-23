@@ -15,8 +15,9 @@ export default function NewCategoryPage() {
       const result = await AdminService.createCategory(formData)
       if (result.success) {
         router.push('/admin/categories')
+        return { success: true }
       } else {
-        return result
+        return { success: false, errors: result.errors }
       }
     } catch (error) {
       console.error('创建分类失败:', error)

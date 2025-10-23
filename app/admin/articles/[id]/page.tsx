@@ -48,8 +48,9 @@ export default function EditArticlePage() {
       const result = await AdminService.updateArticle(articleId, formData)
       if (result.success) {
         router.push('/admin/articles')
+        return { success: true }
       } else {
-        return result
+        return { success: false, errors: result.errors }
       }
     } catch (error) {
       console.error('更新文章失败:', error)

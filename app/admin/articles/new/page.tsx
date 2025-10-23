@@ -30,8 +30,9 @@ export default function NewArticlePage() {
       const result = await AdminService.createArticle(formData)
       if (result.success) {
         router.push('/admin/articles')
+        return { success: true }
       } else {
-        return result
+        return { success: false, errors: result.errors }
       }
     } catch (error) {
       console.error('创建文章失败:', error)

@@ -44,8 +44,9 @@ export default function EditCategoryPage() {
       const result = await AdminService.updateCategory(categoryId, formData)
       if (result.success) {
         router.push('/admin/categories')
+        return { success: true }
       } else {
-        return result
+        return { success: false, errors: result.errors }
       }
     } catch (error) {
       console.error('更新分类失败:', error)
